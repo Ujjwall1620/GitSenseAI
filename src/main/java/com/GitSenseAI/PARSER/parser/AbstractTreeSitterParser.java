@@ -1,0 +1,92 @@
+package com.GitSenseAI.PARSER.parser;
+
+
+
+import com.GitSenseAI.PARSER.DTO.ParseResult;
+import com.GitSenseAI.PARSER.Model.Languages;
+import com.GitSenseAI.PARSER.Exception.ParsingException;
+import com.GitSenseAI.PARSER.Model.NodeType;
+import com.GitSenseAI.PARSER.Model.ParsedType;
+import com.GitSenseAI.PARSER.Util.FileUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.treesitter.TSLanguage;
+import org.treesitter.TSNode;
+import org.treesitter.TSParser;
+import org.treesitter.TSTree;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * Shared traversal logic for every Tree-sitter-backed LanguageParser.
+ * Subclasses only need to supply: which grammar to load, which language
+ * enum value they represent, and which CST node type(s) represent a
+ * "type" declaration for that language (class/struct/interface/etc.).
+ *
+ * Node type strings are grammar-specific conventions (e.g. "class_definition"
+ * for Python, "struct_specifier" for C). Verify against the target grammar's
+ * node-types.json if extraction returns unexpectedly empty results.
+ */
+@Slf4j
+public abstract class AbstractTreeSitterParser implements LanguageParser {
+
+    protected abstract TSLanguage createLanguageBinding();
+
+    protected abstract Set<String> typeNodeTypes();
+
+    protected abstract Languages targetLanguage();
+
+    @Override
+    public ParseResult parse(Path file) {
+        try {
+            String source = FileUtils.readContent(file);
+
+            TSParser parser = new TSParser();
+            parser.setLanguage(createLanguageBinding());
+
+            TSTree tree = parser.parseString(null, source);
+            TSNode rootNode = tree.getRootNode();
+
+            List<ParsedType> types = new ArrayList<>();
+            collectTypes(rootNode, source, types);
+
+            return new ParseResult(file.toString(), targetLanguage(), "", List.of(), types);
+        } catch (IOException ex) {
+            log.error("Failed to read file: {}", file, ex);
+            throw new ParsingException("Failed to read file: " + file, ex);
+        } catch (Exception ex) {
+            log.error("Failed to parse file [{}] as {}", file, targetLanguage(), ex);
+            throw new ParsingException("Failed to parse file: " + file, ex);
+        }
+    }
+
+    private void collectTypes(TSNode node, String source, List<ParsedType> types) {
+        if (typeNodeTypes().contains(node.getType())) {
+            TSNode nameNode = node.getChildByFieldName("name");
+
+            if (nameNode != null) {
+                String name = source.substring((int) nameNode.getStartByte(), (int) nameNode.getEndByte());
+                int lineNumber = node.getStartPoint().getRow() + 1;
+
+                types.add(new ParsedType(
+                        name,
+                        NodeType.CLASS,
+                        "",
+                        List.of(),
+                        List.of(),
+                        List.of(),
+                        List.of(),
+                        List.of(),
+                        lineNumber
+                ));
+            }
+        }
+
+        for (int i = 0; i < node.getChildCount(); i++) {
+            collectTypes(node.getChild(i), source, types);
+        }
+    }
+}
