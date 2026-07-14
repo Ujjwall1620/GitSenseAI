@@ -1,8 +1,9 @@
-package com.GitSenseAI.PARSER.Graph;
+package com.GitSenseAI.knowledgegraph.model;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/** In-memory Knowledge Graph: plain Java collections, no external graph store. */
 public class ProjectGraph {
 
     private final List<GraphNode> nodes = new ArrayList<>();

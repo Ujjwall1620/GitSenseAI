@@ -30,9 +30,4 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", ex.getMessage()));
     }
 
-    @ExceptionHandler(GraphBuildException.class)
-    public ResponseEntity<Map<String, String>> handleGraphBuildException(GraphBuildException ex) {
-        log.error("Graph build failed", ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", ex.getMessage()));
-    }
 }

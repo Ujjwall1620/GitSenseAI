@@ -1,5 +1,6 @@
 package com.GitSenseAI.PARSER.Model;
 
+
 import java.util.List;
 
 public record ParsedType(

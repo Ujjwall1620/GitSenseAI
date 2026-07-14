@@ -1,10 +1,8 @@
 package com.GitSenseAI.PARSER.parser;
 
-
-
 import com.GitSenseAI.PARSER.DTO.ParseResult;
-import com.GitSenseAI.PARSER.Model.Languages;
 import com.GitSenseAI.PARSER.Exception.ParsingException;
+import com.GitSenseAI.PARSER.Model.Languages;
 import com.GitSenseAI.PARSER.Model.NodeType;
 import com.GitSenseAI.PARSER.Model.ParsedType;
 import com.GitSenseAI.PARSER.Util.FileUtils;
@@ -22,13 +20,8 @@ import java.util.Set;
 
 /**
  * Shared traversal logic for every Tree-sitter-backed LanguageParser.
- * Subclasses only need to supply: which grammar to load, which language
- * enum value they represent, and which CST node type(s) represent a
- * "type" declaration for that language (class/struct/interface/etc.).
- *
- * Node type strings are grammar-specific conventions (e.g. "class_definition"
- * for Python, "struct_specifier" for C). Verify against the target grammar's
- * node-types.json if extraction returns unexpectedly empty results.
+ * Node type strings are grammar-specific — verify against the target
+ * grammar's node-types.json if extraction returns unexpectedly empty.
  */
 @Slf4j
 public abstract class AbstractTreeSitterParser implements LanguageParser {
@@ -72,15 +65,7 @@ public abstract class AbstractTreeSitterParser implements LanguageParser {
                 int lineNumber = node.getStartPoint().getRow() + 1;
 
                 types.add(new ParsedType(
-                        name,
-                        NodeType.CLASS,
-                        "",
-                        List.of(),
-                        List.of(),
-                        List.of(),
-                        List.of(),
-                        List.of(),
-                        lineNumber
+                        name, NodeType.CLASS, "", List.of(), List.of(), List.of(), List.of(), List.of(), lineNumber
                 ));
             }
         }

@@ -27,9 +27,7 @@ public class RepositoryController {
         log.info("Received repository analysis request for URL: {}", request.repositoryUrl());
 
         RepositoryContext context = repositoryService.processRepository(request);
-
         RepositoryResponse response = buildResponse(context);
-
         log.info("Completed repository analysis for URL: {}", request.repositoryUrl());
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
