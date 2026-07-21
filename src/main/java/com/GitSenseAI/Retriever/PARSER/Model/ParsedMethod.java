@@ -9,6 +9,7 @@ public record ParsedMethod(
         List<ParsedMethodCall> methodCalls,
         List<String> annotations,
         boolean isConstructor,
-        int lineNumber
+        int lineNumber,
+        String sourceCode
 ) {
 }

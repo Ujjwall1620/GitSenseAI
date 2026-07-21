@@ -56,6 +56,7 @@ public class NodeFactory {
         Map<String, String> metadata = new HashMap<>();
         metadata.put("returnType", method.returnType());
         metadata.put("parameterTypes", String.join(",", method.parameterTypes()));
+        metadata.put("sourceCode", method.sourceCode());
 
         return new GraphNode(id, method.name(), fqn, nodeType, parseResult.filePath(), method.lineNumber(), metadata);
     }

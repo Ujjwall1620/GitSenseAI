@@ -174,7 +174,8 @@ public class JavaParserAdapter implements LanguageParser {
                 methodCalls,
                 annotations,
                 isConstructor,
-                lineNumber
+                lineNumber,
+                callableDeclaration.toString()
         );
     }
 
