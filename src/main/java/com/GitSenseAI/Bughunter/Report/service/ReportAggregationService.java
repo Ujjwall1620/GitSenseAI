@@ -1,15 +1,16 @@
 package com.GitSenseAI.Bughunter.Report.service;
 
-
 import com.GitSenseAI.Bughunter.BugDetection.dto.BugDetectionReport;
 import com.GitSenseAI.Bughunter.Report.Model.Severity;
 import com.GitSenseAI.Bughunter.Report.dto.BugReport;
 import com.GitSenseAI.Bughunter.Report.dto.BugReportItem;
 import com.GitSenseAI.Bughunter.Report.dto.ReportSummary;
 import com.GitSenseAI.Bughunter.Report.mapper.AiFindingMapper;
+import com.GitSenseAI.Bughunter.Report.mapper.FailureFindingMapper;
 import com.GitSenseAI.Bughunter.Report.mapper.StaticFindingMapper;
 import com.GitSenseAI.Bughunter.TEST.dto.TestExecutionResult;
 import com.GitSenseAI.Bughunter.TEST.enums.TestExecutionStatus;
+import com.GitSenseAI.Bughunter.failurecorrelation.dto.FailureAnalysisResult;
 import com.GitSenseAI.Bughunter.staticanalysis.dto.StaticAnalysisReport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,11 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Combines Static Analysis findings, AI-detected findings, and the test
- * execution result into a single, sorted, human-readable BugReport.
- * Purely an aggregation step — runs no analysis itself.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -33,11 +29,13 @@ public class ReportAggregationService {
 
     private final StaticFindingMapper staticFindingMapper;
     private final AiFindingMapper aiFindingMapper;
+    private final FailureFindingMapper failureFindingMapper;
 
     public BugReport buildReport(String repositoryName,
                                  StaticAnalysisReport staticAnalysisReport,
                                  BugDetectionReport bugDetectionReport,
-                                 TestExecutionResult testExecutionResult) {
+                                 TestExecutionResult testExecutionResult,
+                                 List<FailureAnalysisResult> failureAnalysisResults) {
 
         List<BugReportItem> issues = new ArrayList<>();
 
@@ -47,6 +45,10 @@ public class ReportAggregationService {
 
         if (bugDetectionReport != null && bugDetectionReport.results() != null) {
             bugDetectionReport.results().forEach(result -> issues.addAll(aiFindingMapper.toReportItems(result)));
+        }
+
+        if (failureAnalysisResults != null) {
+            failureAnalysisResults.forEach(result -> issues.addAll(failureFindingMapper.toReportItems(result)));
         }
 
         issues.sort(Comparator.comparing(BugReportItem::severity).reversed());
@@ -74,23 +76,15 @@ public class ReportAggregationService {
         int aiCount = bugDetectionReport != null ? bugDetectionReport.totalFindings() : 0;
         int methodsReviewed = bugDetectionReport != null ? bugDetectionReport.totalMethodsReviewed() : 0;
 
-        boolean testsPassed = testExecutionResult != null
-                && testExecutionResult.status() == TestExecutionStatus.PASSED;
-
-        String testStatus = testExecutionResult != null
-                ? testExecutionResult.status().name()
-                : "NOT_RUN";
+        boolean testsPassed = testExecutionResult != null && testExecutionResult.status() == TestExecutionStatus.PASSED;
+        String testStatus = testExecutionResult != null ? testExecutionResult.status().name() : "NOT_RUN";
 
         return new ReportSummary(
                 issues.size(),
                 countBySeverity.getOrDefault(Severity.HIGH, 0L).intValue(),
                 countBySeverity.getOrDefault(Severity.MEDIUM, 0L).intValue(),
                 countBySeverity.getOrDefault(Severity.LOW, 0L).intValue(),
-                staticCount,
-                aiCount,
-                methodsReviewed,
-                testsPassed,
-                testStatus
+                staticCount, aiCount, methodsReviewed, testsPassed, testStatus
         );
     }
 }

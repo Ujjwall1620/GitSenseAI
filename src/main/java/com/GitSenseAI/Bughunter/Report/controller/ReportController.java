@@ -1,4 +1,6 @@
 package com.GitSenseAI.Bughunter.Report.controller;
+
+
 import com.GitSenseAI.Bughunter.BugDetection.dto.BugDetectionReport;
 import com.GitSenseAI.Bughunter.BugDetection.service.BugDetectionService;
 import com.GitSenseAI.Bughunter.Report.dto.BugReport;
@@ -13,11 +15,7 @@ import com.GitSenseAI.Retriever.PARSER.DTO.ParseResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -49,7 +47,7 @@ public class ReportController {
 
         BugReport report = reportAggregationService.buildReport(
                 repositoryName != null ? repositoryName : "unknown",
-                staticAnalysisReport, bugDetectionReport, testExecutionResult
+                staticAnalysisReport, bugDetectionReport, testExecutionResult, null
         );
 
         return ResponseEntity.ok(report);
